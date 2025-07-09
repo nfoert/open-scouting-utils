@@ -1,0 +1,20 @@
+#instructions {
+    margin: 1;
+}
+
+AddScreen {
+    align: center middle;
+}
+
+#dialog {
+    border: solid white;
+    padding: 1;
+    margin: 1;
+    background: $background;
+}
+
+ColumnsContainer {
+    width: 1fr;
+    height: 1fr;
+    border: solid white;
+}

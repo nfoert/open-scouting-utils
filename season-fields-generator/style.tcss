@@ -18,3 +18,21 @@ ColumnsContainer {
     height: 1fr;
     border: solid white;
 }
+
+#add-section, #add-field {
+    border: solid white;
+    margin: 1;
+    padding: 1;
+}
+
+.hint {
+    opacity: 80%;
+}
+
+.button-row {
+    margin: 1;
+}
+
+.button-row > Button {
+    margin: 0 1;
+}

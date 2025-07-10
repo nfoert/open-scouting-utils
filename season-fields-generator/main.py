@@ -1,6 +1,6 @@
 from textual.app import App, ComposeResult
-from textual.widgets import Footer, Header, TextArea, Placeholder, Collapsible, Label, Tree, Button, OptionList
-from textual.containers import VerticalScroll, VerticalGroup
+from textual.widgets import Footer, Header, TextArea, Placeholder, Collapsible, Label, Tree, Button, OptionList, Button, Select, Input
+from textual.containers import VerticalScroll, VerticalGroup, HorizontalGroup
 from textual.screen import ModalScreen
 
 class AddScreen(ModalScreen[bool]):  
@@ -8,7 +8,57 @@ class AddScreen(ModalScreen[bool]):
     def compose(self) -> ComposeResult:
         yield VerticalGroup(
             Label("Add Element...", id="add-title"),
-            id="dialog")
+            Select(
+                options=[("Section", "section"), ("Field", "field")],
+                value="field",
+                id="add-type",
+            ),
+            VerticalGroup(
+                Label("Add a section..."),
+                Input(placeholder="Name", id="section-name"),
+                Label("The name of the field", classes="hint"),
+                Input(placeholder="Simple name", restrict=r"[A-Za-z_\-]*", id="section-simplename"),
+                Label("The simple name of the field, used in the backend", classes="hint"),
+                HorizontalGroup(
+                    Button.success("Add", id="add-section-confirm"),
+                    Button.error("Cancel", id="add-cancel"),
+                    classes="button-row"
+                ),
+                id="add-section",
+            ),
+            VerticalGroup(
+                Label("Add a field..."),
+                 HorizontalGroup(
+                    Button.success("Add", id="add-field-confirm"),
+                    Button.error("Cancel", id="add-cancel"),
+                    classes="button-row"
+                ),
+                id="add-field",
+            ),
+            id="dialog"
+        )
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "add-cancel":
+            self.dismiss(False)
+
+    def on_select_changed(self, event: Select.Changed) -> None:
+        print(event.value)
+        if event.value == "section":
+            self.query_one("#add-section").display = True
+            self.query_one("#add-field").display = False
+        else:
+            self.query_one("#add-section").display = False
+            self.query_one("#add-field").display = True
+
+    def on_input_changed(self, event: Input.Changed) -> None:
+        if event.input.value != "" and event.input.value != "":
+            self.query_one("#add-section-confirm").disabled = False
+        else:
+            self.query_one("#add-section-confirm").disabled = True
+
+        if event.input.id == "section-name":
+            self.query_one("#section-simplename").value = "".join(c if c.isalnum() or c == " " else "" for c in event.input.value).replace(" ", "_").lower()
 
 class FileView(Collapsible):
     def compose(self) -> ComposeResult:
@@ -25,12 +75,16 @@ class SeasonFieldsGenerator(App):
 
     CSS_PATH = "style.tcss"
 
+    SCREENS={
+        "add_screen": AddScreen,
+    }
     BINDINGS = [
-        ("d", "toggle_dark", "Toggle dark mode"), 
         ("l", "load_file", "Load file"), 
         ("n", "new_file", "Create file"),
         ("ctrl+a", "add", "Add element")
     ]
+
+    add_open = False
 
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
@@ -39,22 +93,9 @@ class SeasonFieldsGenerator(App):
         yield WizardView()
         yield FileView()
 
-    def action_toggle_dark(self) -> None:
-        """An action to toggle dark mode."""
-        self.theme = (
-            "textual-dark" if self.theme == "textual-light" else "textual-light"
-        )
-
     def action_add(self) -> None:
-        """Action to display the quit dialog."""
-
-        def add_quit(quit: bool | None) -> None:
-            """Called when QuitScreen is dismissed."""
-            if quit:
-                self.exit()
-
-        self.push_screen(AddScreen(), add_quit)
-
+        """Show the add dialog screen."""
+        self.push_screen("add_screen")
 
 if __name__ == "__main__":
     app = SeasonFieldsGenerator()

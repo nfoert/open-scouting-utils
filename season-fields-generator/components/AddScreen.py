@@ -3,6 +3,8 @@ from textual.widgets import Label, Select, Input, Rule, Checkbox, Button
 from textual.containers import VerticalGroup, HorizontalGroup
 from textual.screen import ModalScreen
 
+from components.messages import AddData
+
 class AddScreen(ModalScreen[bool]):  
     """Screen with a dialog to quit."""
     def compose(self) -> ComposeResult:
@@ -103,7 +105,7 @@ class AddScreen(ModalScreen[bool]):
 
         self.query_one("#field-name").value = ""
         self.query_one("#field-simplename").value = ""
-        self.query_one("#field-required").checked = False
+        self.query_one("#field-required").value = False
         self.query_one("#field-stattype").value = "score"
         self.query_one("#field-gamepiece").value = ""
         self.query_one("#field-integer-default").value = ""
@@ -112,19 +114,44 @@ class AddScreen(ModalScreen[bool]):
         self.query_one("#field-choices").value = ""
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        # TODO: Return added data in dismiss
-        # https://textual.textualize.io/guide/screens/#returning-data-from-screens
         if event.button.id == "add-cancel":
             self.clear_fields()
             self.dismiss(False)
 
         elif event.button.id == "add-field-confirm":
+            if self.query_one("#add-type").value == "section":
+                data = {
+                    "name": self.query_one("#section-name").value,
+                    "simple_name": self.query_one("#section-simplename").value,
+                    "fields": []
+                }
+            else:
+                data = {
+                    "name": self.query_one("#field-name").value,
+                    "simple_name": self.query_one("#field-simplename").value,
+                    "required": self.query_one("#field-required").value,
+                    "stat_type": self.query_one("#field-stattype").value,
+                    "game_piece": self.query_one("#field-gamepiece").value,
+                    "type": self.query_one("#add-field-type").value
+                }
+
+                if self.query_one("#add-field-type").value == "integer":
+                    data["default"] = self.query_one("#field-integer-default").value
+                    data["minimum"] = self.query_one("#field-integer-minimum").value
+                    data["maximum"] = self.query_one("#field-integer-maximum").value
+
+                elif self.query_one("#add-field-type").value == "choice" or self.query_one("#add-field-type").value == "multiple_choice":
+                    data["choices"] = self.query_one("#field-choices").value
+
+            self.post_message(AddData(data))
+
             self.clear_fields()
             self.dismiss(True)
 
         elif event.button.id == "add-section-confirm":
             self.clear_fields()
             self.dismiss(True)
+
 
     def on_select_changed(self, event: Select.Changed) -> None:
         if event.value == "section":

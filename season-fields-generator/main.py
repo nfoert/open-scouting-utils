@@ -3,6 +3,7 @@ from textual.widgets import Footer, Header, Label, Tree
 from textual.containers import VerticalScroll
 
 from components.AddScreen import AddScreen
+from components.messages import AddData
 
 class WizardView(VerticalScroll):
     def compose(self) -> ComposeResult:
@@ -10,8 +11,10 @@ class WizardView(VerticalScroll):
         yield Tree(label="Season Fields", id="tree")
 
     def on_mount(self) -> None:
-        self.query_one("#tree").show_root = False
-        # self.query_one("#tree").add_json(reefscape)
+        self.data = []
+        self.query_one("#tree").show_root = True
+
+        self.query_one("#tree").add_json(self.data)
 
 class SeasonFieldsGenerator(App):
     """A Textual app to generate season fields for Open Scouting."""
@@ -38,6 +41,13 @@ class SeasonFieldsGenerator(App):
     def action_add(self) -> None:
         """Show the add dialog screen."""
         self.push_screen("add_screen")
+
+    def on_add_data(self, message: AddData) -> None:
+        wizard_view = self.query_one(WizardView)
+        wizard_view.data.append(message.data)
+
+        wizard_view.query_one("#tree").clear()
+        wizard_view.query_one("#tree").add_json(wizard_view.data)
 
 if __name__ == "__main__":
     app = SeasonFieldsGenerator()

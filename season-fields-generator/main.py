@@ -1,5 +1,5 @@
 from textual.app import App, ComposeResult
-from textual.widgets import Footer, Header, TextArea, Placeholder, Collapsible, Label, Tree, Button, OptionList, Button, Select, Input
+from textual.widgets import Footer, Header, TextArea, Collapsible, Label, Tree, Button, Select, Input, Checkbox, Rule
 from textual.containers import VerticalScroll, VerticalGroup, HorizontalGroup
 from textual.screen import ModalScreen
 
@@ -28,7 +28,29 @@ class AddScreen(ModalScreen[bool]):
             ),
             VerticalGroup(
                 Label("Add a field..."),
-                 HorizontalGroup(
+                Select(
+                    options=[("Large Integer", "large_integer"), ("Integer", "integer"), ("Boolean", "boolean"), ("Multiple Choice", "multiple_choice"), ("Choice", "choice")],
+                    value="large_integer",
+                    id="add-field-type",
+                ),
+                Rule(),
+
+                Input(placeholder="Name", id="field-name"),
+                Label("The name of the field", classes="hint"),
+                Input(placeholder="Simple name", restrict=r"[A-Za-z_\-]*", id="field-simplename"),
+                Label("The simple name of the field, used in the backend", classes="hint"),
+                Checkbox("Required", id="field-required"),
+                Label("Weather or not the field is required", classes="hint"),
+                Select(
+                    options=[("Score", "score"), ("Miss", "miss"), ("Auton score", "auton_score"), ("Auton miss", "auton_miss"), ("Capability", "capability"), ("Other", "other"), ("Ignore", "ignore")],
+                    value="score",
+                    id="field-stattype",
+                ),
+                Label("The type of the field when tracking stats", classes="hint"),
+                Input(placeholder="Game piece", restrict=r"[A-Za-z_\-]*", id="field-gamepiece"),
+                Label("The game piece that this stat corresponds to", classes="hint"),
+
+                HorizontalGroup(
                     Button.success("Add", id="add-field-confirm"),
                     Button.error("Cancel", id="add-cancel"),
                     classes="button-row"
@@ -43,7 +65,6 @@ class AddScreen(ModalScreen[bool]):
             self.dismiss(False)
 
     def on_select_changed(self, event: Select.Changed) -> None:
-        print(event.value)
         if event.value == "section":
             self.query_one("#add-section").display = True
             self.query_one("#add-field").display = False

@@ -6,7 +6,7 @@ from textual.screen import ModalScreen
 from components.messages import AddData
 
 class AddScreen(ModalScreen[bool]):  
-    """Screen with a dialog to quit."""
+    """Screen to add elements to the season fields."""
     def compose(self) -> ComposeResult:
         yield VerticalGroup(
             Label("Add Element...", id="add-title"),
@@ -77,7 +77,7 @@ class AddScreen(ModalScreen[bool]):
                 ),
                 id="add-field",
             ),
-            id="dialog"
+            classes="dialog"
         )
 
     def validate_add_field(self):

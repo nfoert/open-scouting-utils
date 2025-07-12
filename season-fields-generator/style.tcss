@@ -6,7 +6,15 @@ AddScreen {
     align: center middle;
 }
 
-#dialog {
+FilePicker {
+    align: center middle;
+}
+
+FilePicker .dialog {
+    height: 75%;
+}
+
+.dialog {
     border: solid white;
     padding: 1;
     margin: 1;

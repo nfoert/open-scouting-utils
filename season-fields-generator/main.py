@@ -3,6 +3,7 @@ from textual.widgets import Footer, Header, Label, Tree
 from textual.containers import VerticalScroll
 
 from components.AddScreen import AddScreen
+from components.FilePicker import FilePicker
 from components.messages import AddData
 
 class WizardView(VerticalScroll):
@@ -23,6 +24,7 @@ class SeasonFieldsGenerator(App):
 
     SCREENS={
         "add_screen": AddScreen,
+        "file_picker": FilePicker
     }
     BINDINGS = [
         ("l", "load_file", "Load file"), 
@@ -41,6 +43,9 @@ class SeasonFieldsGenerator(App):
     def action_add(self) -> None:
         """Show the add dialog screen."""
         self.push_screen("add_screen")
+
+    def action_load_file(self) -> None:
+        self.push_screen("file_picker")
 
     def on_add_data(self, message: AddData) -> None:
         wizard_view = self.query_one(WizardView)

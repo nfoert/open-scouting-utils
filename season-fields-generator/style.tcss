@@ -44,3 +44,7 @@ ColumnsContainer {
 .button-row > Button {
     margin: 0 1;
 }
+
+WizardView #select_file_section {
+    margin: 1 0;
+}

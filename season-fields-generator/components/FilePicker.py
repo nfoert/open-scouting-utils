@@ -7,6 +7,8 @@ from textual.widgets import DirectoryTree, Input, Select, Label, Rule, Button
 from textual.containers import VerticalGroup, HorizontalGroup
 from textual.screen import ModalScreen
 
+from components.messages import LoadFile
+
 class FilteredDirectoryTree(DirectoryTree):
     def filter_paths(self, paths):
         return [p for p in paths if (p.is_dir() or p.suffix in {".py"}) and not p.name.startswith(".")]
@@ -87,4 +89,9 @@ class FilePicker(ModalScreen[bool]):
         else:
             self.query_one("#confirm").disabled = True
 
-
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "confirm":
+            self.post_message(LoadFile(self.selected))
+            self.dismiss(True)
+        elif event.button.id == "cancel":
+            self.dismiss(False)

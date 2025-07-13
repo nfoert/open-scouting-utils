@@ -23,3 +23,23 @@ And install any necessary packages
 ```
 pip install -r requirements.txt
 ```
+
+## Running the application
+```bash
+textual run main.py
+```
+
+## Development
+You can run the application and open a Textual console to view any debug or error messages using the following commands, in two separate terminals
+```bash
+textual console
+```
+
+```bash
+textual run --dev main.py
+```
+
+The `textual console` command can have optional parameters to exclude certain things from being outputted, to more clearly spot print statements 
+```bash
+textual console -x SYSTEM -x EVENT -x DEBUG -x INFO 
+```

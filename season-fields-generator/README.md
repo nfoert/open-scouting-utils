@@ -43,3 +43,12 @@ The `textual console` command can have optional parameters to exclude certain th
 ```bash
 textual console -x SYSTEM -x EVENT -x DEBUG -x INFO 
 ```
+
+## To-Do
+- [ ] Warn if there's unsaved progress when loading a file or switching sections
+- [ ] Be able to edit items
+- [ ] Be able to delete items
+- [ ] Be able to move items up or down
+- [ ] Be able to create new sections
+- [ ] Add the ability to save files
+- [ ] Add the ability to create a new file and specify the save location

@@ -1,0 +1,18 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Start textual console",
+        "type": "shell",
+        "command": "cd season-fields-generator && source .venv/bin/activate && textual console -x SYSTEM -x EVENT -x DEBUG -x INFO",
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        },
+        "runOptions": {
+          "runOn": "folderOpen"
+        },
+        "problemMatcher": [],
+      },
+    ]
+  }

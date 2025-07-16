@@ -7,10 +7,16 @@ from textual.containers import VerticalScroll, HorizontalGroup
 class WizardView(VerticalScroll):
     def compose(self) -> ComposeResult:
         yield Label("Use Ctrl+A to add a new element", id="instructions")
-        yield Select(options=[], prompt="File sections", id="select_file_section")
+        yield HorizontalGroup(
+            Select(options=[], prompt="File sections", id="select_file_section"),
+            Button("Create section", id="select_file_new_section"),
+            classes="button-row"
+        )
         yield Tree(label="Season Fields", id="tree")
         yield HorizontalGroup(
+            Button("Add", variant="success", id="add"),
             Button("Edit", variant="primary", disabled=True, id="edit"),
+            Button("Delete", variant="error", disabled=True, id="delete"),
             Button("Move up", disabled=True, id="move_up"),
             Button("Move down", disabled=True, id="move_down"),
             classes="button-row",

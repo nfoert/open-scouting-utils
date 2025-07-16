@@ -38,13 +38,11 @@ ColumnsContainer {
 }
 
 .button-row {
+    overflow-x: auto;
     margin: 1;
 }
 
-.button-row > Button {
+.button-row Button {
     margin: 0 1;
-}
-
-WizardView #select_file_section {
-    margin: 1 0;
+    height: 3;
 }

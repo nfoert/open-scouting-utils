@@ -1,7 +1,7 @@
 import ast
 
 from textual.app import ComposeResult
-from textual.widgets import Label, Tree, Select, Button
+from textual.widgets import Label, Tree, Select, Button, Collapsible
 from textual.containers import VerticalScroll, HorizontalGroup, VerticalGroup
 
 class WizardView(VerticalScroll):
@@ -58,31 +58,30 @@ class WizardView(VerticalScroll):
         tree_container = self.query_one("#tree")
         await tree_container.remove_children()
 
-        for item in data:
-            # Section case: contains 'fields' key
+        async def build_collapsible(item):
+            title = item.get("section") or item.get("name") or item.get("simple_name", "Unnamed")
+            children = []
+
             if "fields" in item:
-                section_name = item.get("section") or item.get("simple_name", "Unnamed Section")
+                # Recursively convert nested items
+                for child_item in item["fields"]:
+                    children.append(await build_collapsible(child_item))
+                return Collapsible(title=title, *children, classes="section")
 
-                # Create and mount a container for the section
-                section_group = VerticalGroup(classes="section")
-                await tree_container.mount(section_group)
-
-                # Mount the section label
-                await section_group.mount(Label(section_name, classes="section-label"))
-
-                # Mount all fields within this section
-                for field in item["fields"]:
-                    field_name = field.get("name", field.get("simple_name", "Unnamed Field"))
-                    await section_group.mount(Label(f"• {field_name}", classes="field-label"))
-
-            # Top-level field case: direct field definition
             elif "name" in item and "type" in item:
-                field_name = item.get("name", item.get("simple_name", "Unnamed Field"))
-                await tree_container.mount(Label(f"• {field_name}", classes="field-label"))
+                # Base field case — show its key/values as Labels
+                for key, value in item.items():
+                    if key != "name":
+                        children.append(Label(f"{key}: {value}", classes="field-attr"))
+                return Collapsible(title=title, *children, classes="field")
 
-            # (Optional) log or skip unknown structures
             else:
                 print(f"Unknown item structure: {item}")
+                return Collapsible(title=f"Unknown Item", classes="field")
+
+        for item in data:
+            collapsible = await build_collapsible(item)
+            await tree_container.mount(collapsible)
 
 
     def on_mount(self) -> None:
@@ -95,17 +94,17 @@ class WizardView(VerticalScroll):
             with open(self.path, "r") as file:
                 source = file.read()
             
-            try:
-                tree = ast.parse(source, filename=self.path)
-                for node in ast.walk(tree):
-                    if isinstance(node, ast.Assign):
-                        for target in node.targets:
-                            if isinstance(target, ast.Name) and target.id == selected_value:
-                                if isinstance(node.value, ast.List):
-                                    list_data = ast.literal_eval(node.value)
-                                    self.data = list_data
+            # try:
+            tree = ast.parse(source, filename=self.path)
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Assign):
+                    for target in node.targets:
+                        if isinstance(target, ast.Name) and target.id == selected_value:
+                            if isinstance(node.value, ast.List):
+                                list_data = ast.literal_eval(node.value)
+                                self.data = list_data
 
-                                    await self.build_tree(self.data)
-                                    break
-            except Exception as e:
-                print(f"Error parsing {self.path}: {e}")
+                                await self.build_tree(self.data)
+                                break
+            # except Exception as e:
+            #     print(f"Error parsing {self.path}: {e}")

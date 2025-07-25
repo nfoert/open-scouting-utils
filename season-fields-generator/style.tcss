@@ -50,8 +50,21 @@ ColumnsContainer {
 #tree {
     height: 1fr;
     border: solid white;
+    overflow-y: auto;
 }
 
 .section {
-    border: solid white;
+    border: round white;
+    padding: 1;
+    margin-bottom: 0.5;
+}
+
+.field {
+    border: round gray;
+    padding-left: 0.5;
+}
+
+.field-attr {
+    padding-left: 2;
+    color: gray;
 }

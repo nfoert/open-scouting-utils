@@ -15,14 +15,6 @@ class WizardView(VerticalScroll):
         yield VerticalGroup(
             id="tree"
         )
-        yield HorizontalGroup(
-            Button("Add", variant="success", id="add"),
-            Button("Edit", variant="primary", disabled=True, id="edit"),
-            Button("Delete", variant="error", disabled=True, id="delete"),
-            Button("Move up", disabled=True, id="move_up"),
-            Button("Move down", disabled=True, id="move_down"),
-            classes="button-row",
-        )
 
     def load_file(self, path):
         self.path = path
@@ -62,10 +54,29 @@ class WizardView(VerticalScroll):
             title = item.get("section") or item.get("name") or item.get("simple_name", "Unnamed")
             children = []
 
+            field_buttons = HorizontalGroup(
+                Button("Edit", variant="primary", id="edit"),
+                Button("Delete", variant="error", id="delete"),
+                Button("Move up", id="move_up"),
+                Button("Move down", id="move_down"),
+                classes="button-row-field",
+            )
+
+            section_buttons = HorizontalGroup(
+                Button("Add", variant="success", id="add"),
+                Button("Edit", variant="primary", id="edit"),
+                Button("Delete", variant="error", id="delete"),
+                Button("Move up", id="move_up"),
+                Button("Move down", id="move_down"),
+                classes="button-row-field",
+            )
+
             if "fields" in item:
                 # Recursively convert nested items
                 for child_item in item["fields"]:
                     children.append(await build_collapsible(child_item))
+
+                children.append(section_buttons)
                 return Collapsible(title=title, *children, classes="section")
 
             elif "name" in item and "type" in item:
@@ -73,11 +84,13 @@ class WizardView(VerticalScroll):
                 for key, value in item.items():
                     if key != "name":
                         children.append(Label(f"{key}: {value}", classes="field-attr"))
+                
+                children.append(field_buttons)
                 return Collapsible(title=title, *children, classes="field")
 
             else:
                 print(f"Unknown item structure: {item}")
-                return Collapsible(title=f"Unknown Item", classes="field")
+                return Collapsible(title="Unknown Item", classes="field")
 
         for item in data:
             collapsible = await build_collapsible(item)

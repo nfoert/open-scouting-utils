@@ -56,15 +56,26 @@ ColumnsContainer {
 .section {
     border: round white;
     padding: 1;
-    margin-bottom: 0.5;
+    margin-bottom: 1;
 }
 
 .field {
     border: round gray;
-    padding-left: 0.5;
+    padding-left: 1;
 }
 
 .field-attr {
-    padding-left: 2;
     color: gray;
+}
+
+.button-row-field {
+    overflow-x: auto;
+    margin: 1;
+}
+
+.button-row-field Button {
+    border: none;
+    margin: 0 1;
+    height: 1;
+    min-width: 10;
 }

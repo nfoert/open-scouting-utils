@@ -1,6 +1,5 @@
 from textual.app import App, ComposeResult
-from textual.widgets import Footer, Header, Label, Tree, Select, Button
-from textual.containers import VerticalScroll, HorizontalGroup
+from textual.widgets import Footer, Header
 
 from components.AddScreen import AddScreen
 from components.FilePicker import FilePicker
@@ -16,6 +15,7 @@ class SeasonFieldsGenerator(App):
         "add_screen": AddScreen,
         "file_picker": FilePicker
     }
+
     BINDINGS = [
         ("l", "load_file", "Load file"), 
         ("n", "new_file", "Create file"),

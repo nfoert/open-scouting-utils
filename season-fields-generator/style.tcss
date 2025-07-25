@@ -46,3 +46,12 @@ ColumnsContainer {
     margin: 0 1;
     height: 3;
 }
+
+#tree {
+    height: 1fr;
+    border: solid white;
+}
+
+.section {
+    border: solid white;
+}

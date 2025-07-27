@@ -4,7 +4,7 @@ from textual.widgets import Footer, Header
 from components.AddScreen import AddScreen
 from components.FilePicker import FilePicker
 from components.WizardView import WizardView
-from components.messages import AddData, LoadFile, LoadData
+from components.messages import AddData, LoadFile, LoadData, EditData
 
 class SeasonFieldsGenerator(App):
     """A Textual app to generate season fields for Open Scouting."""
@@ -50,6 +50,9 @@ class SeasonFieldsGenerator(App):
 
     def on_load_data(self, message: LoadData) -> None:
         self.get_screen("add_screen").load_data(message.data)
+
+    async def on_edit_data(self, message: EditData) -> None:
+        await self.query_one(WizardView).edit_data(message.data)
 
 if __name__ == "__main__":
     app = SeasonFieldsGenerator()

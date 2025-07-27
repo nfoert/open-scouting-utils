@@ -3,13 +3,15 @@ from textual.widgets import Label, Select, Input, Rule, Checkbox, Button
 from textual.containers import VerticalGroup, HorizontalGroup
 from textual.screen import ModalScreen
 
-from components.messages import AddData, LoadData
+from components.messages import AddData, LoadData, EditData
 
 class AddScreen(ModalScreen[bool]):  
     """Screen to add elements to the season fields."""
     def __init__(self):
         super().__init__()
         self.pending_data = None
+        self.editing = False
+        self.section_fields = []
 
     def compose(self) -> ComposeResult:
         yield VerticalGroup(
@@ -119,10 +121,15 @@ class AddScreen(ModalScreen[bool]):
         self.query_one("#field-integer-maximum").value = ""
         self.query_one("#field-choices").value = ""
 
+        self.editing = False
+        self.section_fields = []
+
     def load_data(self, data):
         if not self.is_mounted:
             self.pending_data = data
             return
+
+        self.editing = True
 
         self.query_one("#add-type").disabled = True
 
@@ -131,6 +138,7 @@ class AddScreen(ModalScreen[bool]):
 
             self.query_one("#section-name").value = data["section"]
             self.query_one("#section-simplename").value = data["simple_name"]
+            self.section_fields = data["fields"]
 
         else:
             self.query_one("#add-type").value = "field"
@@ -164,7 +172,7 @@ class AddScreen(ModalScreen[bool]):
         elif event.button.id == "add-field-confirm":
             if self.query_one("#add-type").value == "section":
                 data = {
-                    "name": self.query_one("#section-name").value,
+                    "section": self.query_one("#section-name").value,
                     "simple_name": self.query_one("#section-simplename").value,
                     "fields": []
                 }
@@ -186,12 +194,29 @@ class AddScreen(ModalScreen[bool]):
                 elif self.query_one("#add-field-type").value == "choice" or self.query_one("#add-field-type").value == "multiple_choice":
                     data["choices"] = self.query_one("#field-choices").value
 
-            self.post_message(AddData(data))
+            if self.editing:
+                self.post_message(EditData(data))
+            else:
+                self.post_message(AddData(data))
 
             self.clear_fields()
             self.dismiss(True)
 
         elif event.button.id == "add-section-confirm":
+            data = {
+                "section": self.query_one("#section-name").value,
+                "simple_name": self.query_one("#section-simplename").value,
+                "fields": []
+            }
+
+            if self.editing:
+                data["fields"] = self.section_fields
+
+                self.post_message(EditData(data))
+                print("Edit confirm")
+            else:
+                self.post_message(AddData(data))
+
             self.clear_fields()
             self.dismiss(True)
 

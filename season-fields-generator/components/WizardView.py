@@ -4,7 +4,7 @@ from textual.app import ComposeResult
 from textual.widgets import Label, Select, Button, Collapsible
 from textual.containers import VerticalScroll, HorizontalGroup, VerticalGroup
 
-from components.messages import LoadData
+from components.messages import LoadData, EditData
 
 class WizardView(VerticalScroll):
     def compose(self) -> ComposeResult:
@@ -117,6 +117,19 @@ class WizardView(VerticalScroll):
                 return widget
             widget = widget.parent
         return None
+    
+    async def edit_data(self, data):
+        parent_list = self.editing.get("parent_list")
+        original_item = self.editing.get("item")
+
+        if not parent_list or original_item not in parent_list:
+            print("Cannot find item to edit in parent list")
+            return
+
+        index = parent_list.index(original_item)
+        parent_list[index] = data
+
+        await self.build_tree(self.tree_data)
 
     def on_mount(self) -> None:
         self.data = []

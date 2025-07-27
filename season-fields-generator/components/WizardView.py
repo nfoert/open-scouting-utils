@@ -50,7 +50,7 @@ class WizardView(VerticalScroll):
         tree_container = self.query_one("#tree")
         await tree_container.remove_children()
 
-        async def build_collapsible(item):
+        async def build_collapsible(item, parent_list=None):
             title = item.get("section") or item.get("name") or item.get("simple_name", "Unnamed")
             children = []
 
@@ -72,30 +72,32 @@ class WizardView(VerticalScroll):
             )
 
             if "fields" in item:
-                # Recursively convert nested items
-                for child_item in item["fields"]:
-                    children.append(await build_collapsible(child_item))
+                for child in item["fields"]:
+                    children.append(await build_collapsible(child, parent_list=item["fields"]))
 
                 children.append(section_buttons)
-                return Collapsible(title=title, *children, classes="section")
-
+                collapsible = Collapsible(title=title, *children, classes="section")
             elif "name" in item and "type" in item:
-                # Base field case — show its key/values as Labels
                 for key, value in item.items():
                     if key != "name":
                         children.append(Label(f"{key}: {value}", classes="field-attr"))
-                
                 children.append(field_buttons)
-                return Collapsible(title=title, *children, classes="field")
-
+                collapsible = Collapsible(title=title, *children, classes="field")
             else:
                 print(f"Unknown item structure: {item}")
-                return Collapsible(title="Unknown Item", classes="field")
+                collapsible = Collapsible(title="Unknown Item", classes="field")
+
+            # Attach data and parent reference
+            collapsible.json_data = item
+            collapsible.parent_list = parent_list
+            return collapsible
 
         for item in data:
-            collapsible = await build_collapsible(item)
+            collapsible = await build_collapsible(item, parent_list=data)
             await tree_container.mount(collapsible)
 
+        # Store the tree data so you can redraw it later
+        self.tree_data = data
 
     def on_mount(self) -> None:
         self.data = []

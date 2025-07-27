@@ -47,8 +47,9 @@ textual console -x SYSTEM -x EVENT -x DEBUG -x INFO
 ## To-Do
 - [ ] Warn if there's unsaved progress when loading a file or switching sections
 - [ ] Be able to edit items
-- [ ] Be able to delete items
-- [ ] Be able to move items up or down
-- [ ] Be able to create new sections
+- [x] Be able to delete items
+- [x] Be able to move items up or down
+- [x] Be able to create new sections or fields
 - [ ] Add the ability to save files
 - [ ] Add the ability to create a new file and specify the save location
+- [ ] Be able to add new top level fields or sections

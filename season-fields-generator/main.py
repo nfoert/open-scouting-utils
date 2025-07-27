@@ -4,7 +4,7 @@ from textual.widgets import Footer, Header
 from components.AddScreen import AddScreen
 from components.FilePicker import FilePicker
 from components.WizardView import WizardView
-from components.messages import AddData, LoadFile
+from components.messages import AddData, LoadFile, LoadData
 
 class SeasonFieldsGenerator(App):
     """A Textual app to generate season fields for Open Scouting."""
@@ -30,6 +30,11 @@ class SeasonFieldsGenerator(App):
         yield Footer()
         yield WizardView()
 
+    def on_mount(self) -> None:
+        # Have to do this, or else when editing the add_screen won't mount fast enough
+        self.push_screen("add_screen")
+        self.pop_screen()
+
     def action_add(self) -> None:
         """Show the add dialog screen."""
         self.push_screen("add_screen")
@@ -42,6 +47,9 @@ class SeasonFieldsGenerator(App):
 
     def on_load_file(self, message: LoadFile) -> None:
         self.query_one(WizardView).load_file(message.path)
+
+    def on_load_data(self, message: LoadData) -> None:
+        self.get_screen("add_screen").load_data(message.data)
 
 if __name__ == "__main__":
     app = SeasonFieldsGenerator()

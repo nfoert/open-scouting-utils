@@ -4,6 +4,8 @@ from textual.app import ComposeResult
 from textual.widgets import Label, Select, Button, Collapsible
 from textual.containers import VerticalScroll, HorizontalGroup, VerticalGroup
 
+from components.messages import LoadData
+
 class WizardView(VerticalScroll):
     def compose(self) -> ComposeResult:
         yield Label("Use Ctrl+A to add a new element", id="instructions")
@@ -161,8 +163,11 @@ class WizardView(VerticalScroll):
             self.app.push_screen("add_screen")
 
         elif button_id == "edit":
-            # TODO: Edit field using dialog
-            pass
+            self.editing["parent_list"] = parent_list
+            self.editing["item"] = item
+
+            self.app.push_screen("add_screen")
+            self.app.post_message(LoadData(item))
 
         elif button_id == "delete":
             if parent_list and item in parent_list:

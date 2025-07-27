@@ -3,10 +3,14 @@ from textual.widgets import Label, Select, Input, Rule, Checkbox, Button
 from textual.containers import VerticalGroup, HorizontalGroup
 from textual.screen import ModalScreen
 
-from components.messages import AddData
+from components.messages import AddData, LoadData
 
 class AddScreen(ModalScreen[bool]):  
     """Screen to add elements to the season fields."""
+    def __init__(self):
+        super().__init__()
+        self.pending_data = None
+
     def compose(self) -> ComposeResult:
         yield VerticalGroup(
             Label("Add Element...", id="add-title"),
@@ -98,6 +102,8 @@ class AddScreen(ModalScreen[bool]):
                 self.query_one("#add-field-confirm").disabled = True
 
     def clear_fields(self):
+        self.query_one("#add-type").disabled = False
+
         self.query_one("#section-name").value = ""
         self.query_one("#section-simplename").value = ""
 
@@ -112,6 +118,43 @@ class AddScreen(ModalScreen[bool]):
         self.query_one("#field-integer-minimum").value = ""
         self.query_one("#field-integer-maximum").value = ""
         self.query_one("#field-choices").value = ""
+
+    def load_data(self, data):
+        if not self.is_mounted:
+            self.pending_data = data
+            return
+
+        self.query_one("#add-type").disabled = True
+
+        if "section" in data:
+            self.query_one("#add-type").value = "section"
+
+            self.query_one("#section-name").value = data["section"]
+            self.query_one("#section-simplename").value = data["simple_name"]
+
+        else:
+            self.query_one("#add-type").value = "field"
+            self.query_one("#add-field-type").value = data["type"]
+
+            self.query_one("#field-name").value = data["name"]
+            self.query_one("#field-simplename").value = data["simple_name"]
+            self.query_one("#field-required").value = data["required"]
+            self.query_one("#field-stattype").value = data["stat_type"]
+            self.query_one("#field-gamepiece").value = data["game_piece"]
+
+            if data["type"] == "integer":
+                self.query_one("#field-integer-default").value = data["default"]
+                self.query_one("#field-integer-minimum").value = data["minimum"]
+                self.query_one("#field-integer-maximum").value = data["maximum"]
+            elif data["type"] == "choice" or data["type"] == "multiple_choice":
+                self.query_one("#field-choices").value = ", ".join(data["choices"])
+            
+    def on_mount(self) -> None:
+        self.clear_fields()
+
+        if self.pending_data:
+            self.load_data(self.pending_data)
+            self.pending_data = None
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "add-cancel":

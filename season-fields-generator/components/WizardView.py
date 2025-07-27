@@ -99,6 +99,13 @@ class WizardView(VerticalScroll):
         # Store the tree data so you can redraw it later
         self.tree_data = data
 
+    def get_closest_collapsible(self, widget):
+        while widget is not None:
+            if isinstance(widget, Collapsible):
+                return widget
+            widget = widget.parent
+        return None
+
     def on_mount(self) -> None:
         self.data = []
         self.path = ""
@@ -123,3 +130,43 @@ class WizardView(VerticalScroll):
                                 break
             # except Exception as e:
             #     print(f"Error parsing {self.path}: {e}")
+
+    async def on_button_pressed(self, event: Button.Pressed) -> None:
+        button_id = event.button.id
+        collapsible = self.get_closest_collapsible(event.button)
+
+        if not collapsible:
+            print("No collapsible found for button press.")
+            return
+
+        item = collapsible.json_data
+        parent_list = collapsible.parent_list
+
+        if button_id == "add":
+            # TODO: Add field to section using dialog
+            pass
+
+        elif button_id == "edit":
+            # TODO: Edit field using dialog
+            pass
+
+        elif button_id == "delete":
+            if parent_list and item in parent_list:
+                parent_list.remove(item)
+                await self.build_tree(self.tree_data)
+
+        elif button_id == "move_up":
+            if parent_list and item in parent_list:
+                index = parent_list.index(item)
+                if index > 0:
+                    parent_list[index], parent_list[index - 1] = parent_list[index - 1], parent_list[index]
+                    await self.build_tree(self.tree_data)
+
+        elif button_id == "move_down":
+            if parent_list and item in parent_list:
+                index = parent_list.index(item)
+                if index < len(parent_list) - 1:
+                    parent_list[index], parent_list[index + 1] = parent_list[index + 1], parent_list[index]
+                    await self.build_tree(self.tree_data)
+
+

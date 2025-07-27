@@ -152,7 +152,6 @@ class AddScreen(ModalScreen[bool]):
             self.clear_fields()
             self.dismiss(True)
 
-
     def on_select_changed(self, event: Select.Changed) -> None:
         if event.value == "section":
             self.query_one("#add-section").display = True

@@ -37,8 +37,8 @@ class SeasonFieldsGenerator(App):
     def action_load_file(self) -> None:
         self.push_screen("file_picker")
 
-    def on_add_data(self, message: AddData) -> None:
-        self.query_one(WizardView).add_data(message.data)
+    async def on_add_data(self, message: AddData) -> None:
+        await self.query_one(WizardView).add_data(message.data)
 
     def on_load_file(self, message: LoadFile) -> None:
         self.query_one(WizardView).load_file(message.path)

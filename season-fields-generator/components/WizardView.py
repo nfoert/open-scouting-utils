@@ -1,7 +1,7 @@
 import ast
 
 from textual.app import ComposeResult
-from textual.widgets import Label, Tree, Select, Button, Collapsible
+from textual.widgets import Label, Select, Button, Collapsible
 from textual.containers import VerticalScroll, HorizontalGroup, VerticalGroup
 
 class WizardView(VerticalScroll):
@@ -43,8 +43,18 @@ class WizardView(VerticalScroll):
         )
         self.query_one("#select_file_section").value = list_names[0]
 
-    def add_data(self, data):
-        self.data.append(data)
+    async def add_data(self, data):
+        target_item = self.adding.get("item")
+
+        if not target_item or "fields" not in target_item:
+            print("Invalid target for adding data:", self.adding)
+            return
+
+        # Append new field data to the target item's "fields"
+        target_item["fields"].append(data)
+
+        # Re-render the full tree using the source of truth
+        await self.build_tree(self.tree_data)
 
     async def build_tree(self, data):
         tree_container = self.query_one("#tree")
@@ -110,6 +120,9 @@ class WizardView(VerticalScroll):
         self.data = []
         self.path = ""
 
+        self.adding = {}
+        self.editing = {}
+
     async def on_select_changed(self, event: Select.Changed) -> None:
         selected_value = event.select.value
         if selected_value:
@@ -143,8 +156,9 @@ class WizardView(VerticalScroll):
         parent_list = collapsible.parent_list
 
         if button_id == "add":
-            # TODO: Add field to section using dialog
-            pass
+            self.adding["parent_list"] = parent_list
+            self.adding["item"] = item
+            self.app.push_screen("add_screen")
 
         elif button_id == "edit":
             # TODO: Edit field using dialog

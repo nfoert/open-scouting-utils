@@ -52,5 +52,5 @@ textual console -x SYSTEM -x EVENT -x DEBUG -x INFO
 - [x] Be able to create new sections or fields
 - [x] Add the ability to save files
 - [ ] Add the ability to create a new file and specify the save location
-- [ ] Be able to add new top level fields or sections
-- [ ] Be able to create new sections
+- [x] Be able to add new top level fields or sections
+- [ ] Be able to create new file sections

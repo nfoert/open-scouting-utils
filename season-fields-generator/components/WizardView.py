@@ -54,7 +54,10 @@ class WizardView(VerticalScroll):
         target_item = self.adding.get("item")
 
         if not target_item or "fields" not in target_item:
-            print("Invalid target for adding data:", self.adding)
+            print("Invalid target for adding data:", self.adding, "(will be added to the root)")
+
+            self.data.append(data)
+            await self.build_tree(self.tree_data)
             return
 
         # Append new field data to the target item's "fields"
@@ -64,6 +67,11 @@ class WizardView(VerticalScroll):
         await self.build_tree(self.tree_data)
 
     async def build_tree(self, data):
+        top_level_buttons = HorizontalGroup(
+            Button("Add", variant="success", id="add-top-level"),
+            classes="button-row-field"
+        )
+
         tree_container = self.query_one("#tree")
         await tree_container.remove_children()
 
@@ -112,6 +120,8 @@ class WizardView(VerticalScroll):
         for item in data:
             collapsible = await build_collapsible(item, parent_list=data)
             await tree_container.mount(collapsible)
+
+        await tree_container.mount(top_level_buttons)
 
         # Store the tree data so you can redraw it later
         self.tree_data = data
@@ -174,17 +184,23 @@ class WizardView(VerticalScroll):
         collapsible = self.get_closest_collapsible(event.button)
 
         if not collapsible:
-            print("No collapsible found for button press.")
-            return
-
-        item = collapsible.json_data
-        parent_list = collapsible.parent_list
+            if button_id != "add-top-level":
+                print("No collapsible found for button press.")
+                return
+        else:
+            item = collapsible.json_data
+            parent_list = collapsible.parent_list
 
         self.saved = False
 
         if button_id == "add":
             self.adding["parent_list"] = parent_list
             self.adding["item"] = item
+            self.app.push_screen("add_screen")
+
+        elif button_id == "add-top-level":
+            self.adding["parent_list"] = None
+            self.adding["item"] = None
             self.app.push_screen("add_screen")
 
         elif button_id == "edit":

@@ -1,1 +1,1 @@
-reefscape = []
+reefscape = [{'name': 'a', 'simple_name': 'a', 'required': False, 'stat_type': 'score', 'game_piece': '', 'type': 'large_integer'}, {'section': 'a', 'simple_name': 'a', 'fields': [{'section': 'a', 'simple_name': 'a', 'fields': [{'name': 'a', 'simple_name': 'a', 'required': False, 'stat_type': 'score', 'game_piece': 'coral', 'type': 'multiple_choice', 'choices': 'hi,hello,hello'}]}]}]

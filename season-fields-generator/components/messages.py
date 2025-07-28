@@ -19,3 +19,12 @@ class EditData(Message):
     def __init__(self, data):
         self.data = data
         super().__init__()
+
+class NewFile(Message):
+    def __init__(self):
+        super().__init__()
+
+class SetFilePath(Message):
+    def __init__(self, path):
+        self.path = path
+        super().__init__()

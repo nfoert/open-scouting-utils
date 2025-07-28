@@ -7,7 +7,7 @@ from textual.widgets import DirectoryTree, Input, Select, Label, Rule, Button
 from textual.containers import VerticalGroup, HorizontalGroup
 from textual.screen import ModalScreen
 
-from components.messages import LoadFile
+from components.messages import LoadFile, SetFilePath
 
 class FilteredDirectoryTree(DirectoryTree):
     def filter_paths(self, paths):
@@ -33,6 +33,7 @@ class FilePicker(ModalScreen[bool]):
 
     def on_mount(self) -> None:
         self.selected = ""
+        self.new_file = False
 
         self.query_one("#tree").path = "~"
         asyncio.create_task(self.find_files(Path.home()))
@@ -92,7 +93,12 @@ class FilePicker(ModalScreen[bool]):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "confirm":
-            self.post_message(LoadFile(self.selected))
+            if not self.new_file:
+                self.post_message(LoadFile(self.selected))
+            else:
+                self.post_message(SetFilePath(self.selected))
+
+            self.new_file = False
             self.dismiss(True)
         elif event.button.id == "cancel":
             self.dismiss(False)

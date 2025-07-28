@@ -5,7 +5,7 @@ from textual.app import ComposeResult
 from textual.widgets import Label, Select, Button, Collapsible
 from textual.containers import VerticalScroll, HorizontalGroup, VerticalGroup
 
-from components.messages import LoadData, EditData
+from components.messages import LoadData, EditData, NewFile
 
 class WizardView(VerticalScroll):
     def compose(self) -> ComposeResult:
@@ -234,7 +234,8 @@ class WizardView(VerticalScroll):
     def save_file(self):
         """Saves the currently loaded file section back into the source file."""
         if not hasattr(self, "path") or not self.path:
-            print("TODO: Prompt user to choose where to save the file.")
+            print("Showing file picker to select save location")
+            self.app.post_message(NewFile())
             return
 
         section_name = getattr(self, "current_section", None)

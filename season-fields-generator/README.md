@@ -51,6 +51,6 @@ textual console -x SYSTEM -x EVENT -x DEBUG -x INFO
 - [x] Be able to move items up or down
 - [x] Be able to create new sections or fields
 - [x] Add the ability to save files
-- [ ] Add the ability to create a new file and specify the save location
+- [x] Add the ability to create a new file and specify the save location
 - [x] Be able to add new top level fields or sections
 - [ ] Be able to create new file sections

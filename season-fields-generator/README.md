@@ -1,11 +1,13 @@
 # season-fields-generator
 
+![A view of the main screen of season-fields-generator](/repo/images/season-fields-generator.png)
+
 A terminal app used to quickly generate and edit season fields for [Open Scouting](https://github.com/FRC-Team3484/open-scouting)
 
 ## Features
-- Create season fields
-- Edit existing season fields by import
-- Add the path to the season fields file when developing and edit all of the season fields there
+- Quickly create season fields without editing JSON directly
+- Edit existing season fields by loading files
+- Search the user's system for existing season field files
 
 ## Installation
 Create a virtual environment

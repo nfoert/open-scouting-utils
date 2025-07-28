@@ -19,7 +19,6 @@ class SeasonFieldsGenerator(App):
     BINDINGS = [
         ("l", "load_file", "Load file"), 
         ("n", "new_file", "Create file"),
-        ("ctrl+a", "add", "Add element")
     ]
 
     add_open = False
@@ -34,10 +33,6 @@ class SeasonFieldsGenerator(App):
         # Have to do this, or else when editing the add_screen won't mount fast enough
         self.push_screen("add_screen")
         self.pop_screen()
-
-    def action_add(self) -> None:
-        """Show the add dialog screen."""
-        self.push_screen("add_screen")
 
     def action_load_file(self) -> None:
         self.push_screen("file_picker")

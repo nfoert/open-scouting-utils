@@ -8,7 +8,6 @@ from components.messages import LoadData, EditData
 
 class WizardView(VerticalScroll):
     def compose(self) -> ComposeResult:
-        yield Label("Use Ctrl+A to add a new element", id="instructions")
         yield HorizontalGroup(
             Select(options=[], prompt="File sections", id="select_file_section"),
             Button("Create section", id="select_file_new_section"),

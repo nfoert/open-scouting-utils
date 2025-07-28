@@ -1,4 +1,5 @@
 import ast
+from pathlib import Path
 
 from textual.app import ComposeResult
 from textual.widgets import Label, Select, Button, Collapsible
@@ -42,7 +43,12 @@ class WizardView(VerticalScroll):
         self.query_one("#select_file_section").set_options(
             [(name, name) for name in list_names]
         )
-        self.query_one("#select_file_section").value = list_names[0]
+
+        try:
+            self.query_one("#select_file_section").value = list_names[0]
+            self.current_section = list_names[0]
+        except IndexError:
+            print(f"No sections found in {path}")
 
     async def add_data(self, data):
         target_item = self.adding.get("item")
@@ -133,13 +139,18 @@ class WizardView(VerticalScroll):
     def on_mount(self) -> None:
         self.data = []
         self.path = ""
+        self.current_section = None
 
         self.adding = {}
         self.editing = {}
 
+        self.saved = True
+
     async def on_select_changed(self, event: Select.Changed) -> None:
         selected_value = event.select.value
         if selected_value:
+            self.current_section = selected_value
+
             with open(self.path, "r") as file:
                 source = file.read()
             
@@ -168,6 +179,8 @@ class WizardView(VerticalScroll):
 
         item = collapsible.json_data
         parent_list = collapsible.parent_list
+
+        self.saved = False
 
         if button_id == "add":
             self.adding["parent_list"] = parent_list
@@ -200,4 +213,54 @@ class WizardView(VerticalScroll):
                     parent_list[index], parent_list[index + 1] = parent_list[index + 1], parent_list[index]
                     await self.build_tree(self.tree_data)
 
+    def save_file(self):
+        """Saves the currently loaded file section back into the source file."""
+        if not hasattr(self, "path") or not self.path:
+            print("TODO: Prompt user to choose where to save the file.")
+            return
+
+        section_name = getattr(self, "current_section", None)
+        if not section_name:
+            print("No section selected to save.")
+            return
+
+        try:
+            file_path = Path(self.path)
+            source = file_path.read_text()
+            tree = ast.parse(source, filename=str(file_path))
+        except Exception as e:
+            print(f"Error reading or parsing file: {e}")
+            return
+
+        # Create a new AST node from the current section's data
+        try:
+            new_data_node = ast.parse(repr(self.data)).body[0].value
+        except Exception as e:
+            print(f"Failed to convert data to AST: {e}")
+            return
+
+        # Find and replace or append the assignment
+        section_updated = False
+        for node in tree.body:
+            if isinstance(node, ast.Assign):
+                for target in node.targets:
+                    if isinstance(target, ast.Name) and target.id == section_name:
+                        node.value = new_data_node
+                        section_updated = True
+                        break
+
+        if not section_updated:
+            assign = ast.Assign(
+                targets=[ast.Name(id=section_name, ctx=ast.Store())],
+                value=new_data_node
+            )
+            tree.body.append(assign)
+
+        try:
+            new_source = ast.unparse(tree)  # Requires Python 3.9+
+            file_path.write_text(new_source)
+            print(f"Saved section '{section_name}' to {file_path}")
+            self.saved = True
+        except Exception as e:
+            print(f"Failed to write file: {e}")
 

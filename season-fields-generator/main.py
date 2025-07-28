@@ -17,8 +17,9 @@ class SeasonFieldsGenerator(App):
     }
 
     BINDINGS = [
-        ("l", "load_file", "Load file"), 
-        ("n", "new_file", "Create file"),
+        ("ctrl+l", "load_file", "Load file"), 
+        ("ctrl+n", "new_file", "Create file"),
+        ("ctrl+s", "save_file", "Save file")
     ]
 
     add_open = False
@@ -33,6 +34,10 @@ class SeasonFieldsGenerator(App):
         # Have to do this, or else when editing the add_screen won't mount fast enough
         self.push_screen("add_screen")
         self.pop_screen()
+
+    def action_save_file(self) -> None:
+        """Asks the WizardView to save the currently loaded file. If there is no file loaded, prompt the user to choose where to save it instead."""
+        self.query_one(WizardView).save_file()
 
     def action_load_file(self) -> None:
         self.push_screen("file_picker")

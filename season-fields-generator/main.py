@@ -4,7 +4,8 @@ from textual.widgets import Footer, Header
 from components.AddScreen import AddScreen
 from components.FilePicker import FilePicker
 from components.WizardView import WizardView
-from components.messages import AddData, LoadFile, LoadData, EditData, NewFile, SetFilePath
+from components.SectionScreen import SectionScreen
+from components.messages import AddData, LoadFile, LoadData, EditData, NewFile, SetFilePath, OpenFileSectionScreen, AddFileSection
 
 class SeasonFieldsGenerator(App):
     """A Textual app to generate season fields for Open Scouting."""
@@ -13,7 +14,8 @@ class SeasonFieldsGenerator(App):
 
     SCREENS={
         "add_screen": AddScreen,
-        "file_picker": FilePicker
+        "file_picker": FilePicker,
+        "add_file_section": SectionScreen
     }
 
     BINDINGS = [
@@ -66,6 +68,12 @@ class SeasonFieldsGenerator(App):
         print("set file path", message.path)
         self.query_one(WizardView).path = message.path
         self.query_one(WizardView).save_file()
+
+    def on_open_file_section_screen(self, message: OpenFileSectionScreen) -> None:
+        self.push_screen("add_file_section")
+
+    def on_add_file_section(self, message: AddFileSection) -> None:
+        self.query_one(WizardView).add_file_section(message.name)
 
 if __name__ == "__main__":
     app = SeasonFieldsGenerator()

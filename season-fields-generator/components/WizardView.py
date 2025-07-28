@@ -5,7 +5,7 @@ from textual.app import ComposeResult
 from textual.widgets import Label, Select, Button, Collapsible
 from textual.containers import VerticalScroll, HorizontalGroup, VerticalGroup
 
-from components.messages import LoadData, EditData, NewFile
+from components.messages import LoadData, NewFile, OpenFileSectionScreen
 
 class WizardView(VerticalScroll):
     def compose(self) -> ComposeResult:
@@ -39,6 +39,8 @@ class WizardView(VerticalScroll):
                             list_names.append(target.id)
         except Exception as e:
             print(f"Error parsing {path}: {e}")
+
+        self.file_sections = list_names
 
         self.query_one("#select_file_section").set_options(
             [(name, name) for name in list_names]
@@ -151,6 +153,7 @@ class WizardView(VerticalScroll):
     def on_mount(self) -> None:
         self.data = []
         self.path = ""
+        self.file_sections = []
         self.current_section = None
 
         self.adding = {}
@@ -183,6 +186,11 @@ class WizardView(VerticalScroll):
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         button_id = event.button.id
+
+        if button_id == "select_file_new_section":
+            self.app.post_message(OpenFileSectionScreen())
+            return
+
         collapsible = self.get_closest_collapsible(event.button)
 
         if not collapsible:
@@ -283,3 +291,15 @@ class WizardView(VerticalScroll):
         except Exception as e:
             print(f"Failed to write file: {e}")
 
+    def add_file_section(self, name):
+        if not self.saved:
+            self.app.notify("Please save the current section before adding a new one.")
+            self.save_file()
+
+        self.file_sections.append(name)
+
+        select = self.query_one("#select_file_section")
+        select.set_options(
+            [(name, name) for name in self.file_sections]
+        )
+        self.current_section = name

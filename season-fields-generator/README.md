@@ -53,4 +53,5 @@ textual console -x SYSTEM -x EVENT -x DEBUG -x INFO
 - [x] Add the ability to save files
 - [x] Add the ability to create a new file and specify the save location
 - [x] Be able to add new top level fields or sections
-- [ ] Be able to create new file sections
+- [x] Be able to create new file sections
+- [ ] Fix issues where running off of data in memory doesn't always work

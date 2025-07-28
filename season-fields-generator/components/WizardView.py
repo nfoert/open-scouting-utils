@@ -50,6 +50,8 @@ class WizardView(VerticalScroll):
         except IndexError:
             print(f"No sections found in {path}")
 
+        self.app.notify(f"Loaded {path}")
+
     async def add_data(self, data):
         target_item = self.adding.get("item")
 

@@ -25,6 +25,7 @@ class FilePicker(ModalScreen[bool]):
             HorizontalGroup(
                 Button.success("Confirm", disabled=True, id="confirm"),
                 Button.error("Cancel", id="cancel"),
+                Button("Create new", id="new"),
                 classes="button-row"
             ),
             classes="dialog"
@@ -95,3 +96,14 @@ class FilePicker(ModalScreen[bool]):
             self.dismiss(True)
         elif event.button.id == "cancel":
             self.dismiss(False)
+        elif event.button.id == "new":
+            file_input = self.query_one("#file_input")
+            path = Path(file_input.value).expanduser() / "season_fields.py"
+
+            if not path.exists():
+                path.touch()
+                self.app.notify(f"Created new file {path}")
+            else:
+                self.app.notify(f"{path} already exists!")
+
+            self.query_one("#tree").path = str(path.parent)

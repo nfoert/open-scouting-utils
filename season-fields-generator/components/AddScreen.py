@@ -151,9 +151,9 @@ class AddScreen(ModalScreen[bool]):
             self.query_one("#field-gamepiece").value = data["game_piece"]
 
             if data["type"] == "integer":
-                self.query_one("#field-integer-default").value = data["default"]
-                self.query_one("#field-integer-minimum").value = data["minimum"]
-                self.query_one("#field-integer-maximum").value = data["maximum"]
+                self.query_one("#field-integer-default").value = str(data["default"])
+                self.query_one("#field-integer-minimum").value = str(data["minimum"])
+                self.query_one("#field-integer-maximum").value = str(data["maximum"])
             elif data["type"] == "choice" or data["type"] == "multiple_choice":
                 self.query_one("#field-choices").value = ", ".join(data["choices"])
             

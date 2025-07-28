@@ -51,6 +51,7 @@ class WizardView(VerticalScroll):
             self.current_section = list_names[0]
         except IndexError:
             print(f"No sections found in {path}")
+            self.app.notify("No sections found in file.", severity="warning")
 
         self.app.notify(f"Loaded {path}")
 
@@ -163,26 +164,47 @@ class WizardView(VerticalScroll):
 
     async def on_select_changed(self, event: Select.Changed) -> None:
         selected_value = event.select.value
-        if selected_value:
-            self.current_section = selected_value
 
+        if not self.path or not self.saved:
+            self.query_one("#select_file_section").value = self.current_section
+            print("No file selected")
+            self.app.notify("Sections cannot be changed until a file is saved or loaded.", severity="warning")
+            return
+
+        self.current_section = selected_value
+        self.data = []  # Reset regardless
+
+        try:
             with open(self.path, "r") as file:
                 source = file.read()
-            
-            # try:
-            tree = ast.parse(source, filename=self.path)
-            for node in ast.walk(tree):
-                if isinstance(node, ast.Assign):
-                    for target in node.targets:
-                        if isinstance(target, ast.Name) and target.id == selected_value:
-                            if isinstance(node.value, ast.List):
-                                list_data = ast.literal_eval(node.value)
-                                self.data = list_data
 
-                                await self.build_tree(self.data)
-                                break
-            # except Exception as e:
-            #     print(f"Error parsing {self.path}: {e}")
+            tree = ast.parse(source, filename=self.path)
+        except Exception as e:
+            print(f"Error reading or parsing {self.path}: {e}")
+            self.app.notify(f"Failed to parse file: {e}", severity="error")
+            await self.build_tree([])
+            return
+
+        # Look for the section assignment
+        found_section = False
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Assign):
+                for target in node.targets:
+                    if isinstance(target, ast.Name) and target.id == selected_value:
+                        if isinstance(node.value, ast.List):
+                            try:
+                                self.data = ast.literal_eval(node.value)
+                                found_section = True
+                            except Exception as eval_err:
+                                print(f"Failed to evaluate AST list: {eval_err}")
+                                self.data = []
+                            break
+            if found_section:
+                break
+
+        # If section not found, self.data will remain []
+        await self.build_tree(self.data)
+
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         button_id = event.button.id
@@ -251,10 +273,11 @@ class WizardView(VerticalScroll):
             print("No section selected to save.")
             return
 
+        file_path = Path(self.path)
+        source = file_path.read_text()
+
         try:
-            file_path = Path(self.path)
-            source = file_path.read_text()
-            tree = ast.parse(source, filename=str(file_path))
+            tree = ast.parse(source, filename=str(file_path)) if source.strip() else ast.Module(body=[], type_ignores=[])
         except Exception as e:
             print(f"Error reading or parsing file: {e}")
             return
@@ -283,6 +306,9 @@ class WizardView(VerticalScroll):
             )
             tree.body.append(assign)
 
+        # Fix missing line/column locations before unparsing
+        tree = ast.fix_missing_locations(tree)
+
         try:
             new_source = ast.unparse(tree)  # Requires Python 3.9+
             file_path.write_text(new_source)
@@ -290,6 +316,7 @@ class WizardView(VerticalScroll):
             self.saved = True
         except Exception as e:
             print(f"Failed to write file: {e}")
+
 
     def add_file_section(self, name):
         if not self.saved:

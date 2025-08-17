@@ -1,5 +1,6 @@
 import ast
 from pathlib import Path
+import json
 
 from textual.app import ComposeResult
 from textual.widgets import Label, Select, Button, Collapsible
@@ -168,7 +169,10 @@ class WizardView(VerticalScroll):
         if not self.path or not self.saved:
             self.query_one("#select_file_section").value = self.current_section
             print("No file selected")
-            self.app.notify("Sections cannot be changed until a file is saved or loaded.", severity="warning")
+            self.app.notify(
+                "Sections cannot be changed until a file is saved or loaded.",
+                severity="warning",
+            )
             return
 
         self.current_section = selected_value
@@ -179,6 +183,24 @@ class WizardView(VerticalScroll):
                 source = file.read()
 
             tree = ast.parse(source, filename=self.path)
+
+            # Define translation stripper here so it's scoped only to this function
+            class TranslationStripper(ast.NodeTransformer):
+                """Replaces _('string') with 'string'."""
+                def visit_Call(self, node):
+                    if isinstance(node.func, ast.Name) and node.func.id == "_":
+                        if (
+                            node.args
+                            and isinstance(node.args[0], ast.Constant)
+                            and isinstance(node.args[0].value, str)
+                        ):
+                            return ast.Constant(value=node.args[0].value)
+                    return self.generic_visit(node)
+
+            # Apply the transformation to strip translations
+            tree = TranslationStripper().visit(tree)
+            ast.fix_missing_locations(tree)
+
         except Exception as e:
             print(f"Error reading or parsing {self.path}: {e}")
             self.app.notify(f"Failed to parse file: {e}", severity="error")
@@ -204,7 +226,6 @@ class WizardView(VerticalScroll):
 
         # If section not found, self.data will remain []
         await self.build_tree(self.data)
-
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         button_id = event.button.id
@@ -277,46 +298,86 @@ class WizardView(VerticalScroll):
         source = file_path.read_text()
 
         try:
-            tree = ast.parse(source, filename=str(file_path)) if source.strip() else ast.Module(body=[], type_ignores=[])
+            tree = (
+                ast.parse(source, filename=str(file_path))
+                if source.strip()
+                else ast.Module(body=[], type_ignores=[])
+            )
         except Exception as e:
-            print(f"Error reading or parsing file: {e}")
+            print(f"Error parsing file: {e}")
             return
 
-        # Create a new AST node from the current section's data
-        try:
-            new_data_node = ast.parse(repr(self.data)).body[0].value
-        except Exception as e:
-            print(f"Failed to convert data to AST: {e}")
-            return
-
-        # Find and replace or append the assignment
-        section_updated = False
+        # Find the section assignment node
+        target_node = None
         for node in tree.body:
             if isinstance(node, ast.Assign):
                 for target in node.targets:
                     if isinstance(target, ast.Name) and target.id == section_name:
-                        node.value = new_data_node
-                        section_updated = True
+                        target_node = node
                         break
+        if not target_node:
+            print(f"Section '{section_name}' not found in file.")
+            return
 
-        if not section_updated:
-            assign = ast.Assign(
-                targets=[ast.Name(id=section_name, ctx=ast.Store())],
-                value=new_data_node
-            )
-            tree.body.append(assign)
+        # Wrap translations for "name" and "section" keys
+        def wrap_translations(obj):
+            if isinstance(obj, dict):
+                return {
+                    k: f'_({json.dumps(v)})' if k in ("name", "section") and isinstance(v, str) else wrap_translations(v)
+                    for k, v in obj.items()
+                }
+            elif isinstance(obj, list):
+                return [wrap_translations(x) for x in obj]
+            return obj
 
-        # Fix missing line/column locations before unparsing
-        tree = ast.fix_missing_locations(tree)
+        transformed = wrap_translations(self.data)
 
-        try:
-            new_source = ast.unparse(tree)  # Requires Python 3.9+
-            file_path.write_text(new_source)
-            print(f"Saved section '{section_name}' to {file_path}")
-            self.saved = True
-        except Exception as e:
-            print(f"Failed to write file: {e}")
+        # Pretty-print preserving Python literals
+        def to_source(obj, indent=0, indent_step=4):
+            space = " " * indent
+            if isinstance(obj, dict):
+                if not obj:
+                    return "{}"
+                lines = ["{"]
+                for k, v in obj.items():
+                    key_str = json.dumps(k)  # keys always double-quoted
+                    if isinstance(v, str) and v.startswith("_("):
+                        val_str = v  # keep _() raw
+                    else:
+                        val_str = to_source(v, indent + indent_step, indent_step)
+                    lines.append(f"{' ' * (indent + indent_step)}{key_str}: {val_str},")
+                lines.append(f"{space}}}")
+                return "\n".join(lines)
+            elif isinstance(obj, list):
+                if not obj:
+                    return "[]"
+                lines = ["["]
+                for item in obj:
+                    lines.append(f"{' ' * (indent + indent_step)}{to_source(item, indent + indent_step, indent_step)},")
+                lines.append(f"{space}]")
+                return "\n".join(lines)
+            elif isinstance(obj, bool):
+                return "True" if obj else "False"
+            elif obj is None:
+                return "None"
+            else:
+                return json.dumps(obj)  # strings, numbers
 
+        new_section_text = to_source(transformed, indent=0)
+
+        # Replace only the section in the file text
+        start_line = target_node.lineno - 1
+        end_line = target_node.end_lineno
+        lines = source.splitlines()
+
+        indent = lines[start_line][: len(lines[start_line]) - len(lines[start_line].lstrip())]
+        replacement = f"{indent}{section_name} = {new_section_text}"
+        lines[start_line:end_line] = replacement.splitlines()
+
+        new_source = "\n".join(lines)
+        file_path.write_text(new_source)
+        print(f"Saved section '{section_name}' to {file_path}")
+        self.saved = True
 
     def add_file_section(self, name):
         if not self.saved:
